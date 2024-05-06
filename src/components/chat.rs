@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::{Bridge, Bridged};
-
 use crate::services::event_bus::EventBus;
-use crate::{services::websocket::WebsocketService, User};
+
+use crate::{User, services::websocket::WebsocketService};
 
 pub enum Msg {
     HandleMsg(String),
@@ -42,10 +42,11 @@ struct UserProfile {
 pub struct Chat {
     users: Vec<UserProfile>,
     chat_input: NodeRef,
-    _producer: Box<dyn Bridge<EventBus>>,
     wss: WebsocketService,
     messages: Vec<MessageData>,
+    _producer: Box<dyn Bridge<EventBus>>,
 }
+
 impl Component for Chat {
     type Message = Msg;
     type Properties = ();
@@ -115,6 +116,7 @@ impl Component for Chat {
             Msg::SubmitMessage => {
                 let input = self.chat_input.cast::<HtmlInputElement>();
                 if let Some(input) = input {
+                    //log::debug!("got input: {:?}", input.value());
                     let message = WebSocketMessage {
                         message_type: MsgTypes::Message,
                         data: Some(input.value()),
@@ -137,15 +139,14 @@ impl Component for Chat {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let submit = ctx.link().callback(|_| Msg::SubmitMessage);
-
         html! {
-            <div class="flex w-screen">
-                <div class="flex-none w-56 h-screen bg-gray-100">
+            <div class="flex w-screen bg-gray-800 text-white">
+                <div class="flex-none w-56 h-screen bg-blue-600 text-white">
                     <div class="text-xl p-3">{"Users"}</div>
                     {
                         self.users.clone().iter().map(|u| {
                             html!{
-                                <div class="flex m-3 bg-white rounded-lg p-2">
+                                <div class="flex m-3 bg-blue-600 rounded-lg p-2 text-white">
                                     <div>
                                         <img class="w-12 h-12 rounded-full" src={u.avatar.clone()} alt="avatar"/>
                                     </div>
@@ -162,20 +163,20 @@ impl Component for Chat {
                         }).collect::<Html>()
                     }
                 </div>
-                <div class="grow h-screen flex flex-col">
-                    <div class="w-full h-14 border-b-2 border-gray-300"><div class="text-xl p-3">{"💬 Chat!"}</div></div>
+                <div class="grow h-screen flex flex-col text-white">
+                    <div class="w-full h-14 border-b-2 border-gray-300"><div class="text-xl p-3">{"💬 YewChat!"}</div></div>
                     <div class="w-full grow overflow-auto border-b-2 border-gray-300">
                         {
                             self.messages.iter().map(|m| {
                                 let user = self.users.iter().find(|u| u.name == m.from).unwrap();
                                 html!{
-                                    <div class="flex items-end w-3/6 bg-gray-100 m-8 rounded-tl-lg rounded-tr-lg rounded-br-lg ">
+                                    <div class="flex items-end w-3/6 bg-blue-600 m-8 rounded-tl-lg rounded-tr-lg rounded-br-lg text-white">
                                         <img class="w-8 h-8 rounded-full m-3" src={user.avatar.clone()} alt="avatar"/>
-                                        <div class="p-3">
+                                        <div class="p-3 text-white">
                                             <div class="text-sm">
                                                 {m.from.clone()}
                                             </div>
-                                            <div class="text-xs text-gray-500">
+                                            <div class="text-xs">
                                                 if m.message.ends_with(".gif") {
                                                     <img class="mt-3" src={m.message.clone()}/>
                                                 } else {
@@ -187,12 +188,12 @@ impl Component for Chat {
                                 }
                             }).collect::<Html>()
                         }
-
+    
                     </div>
-                    <div class="w-full h-14 flex px-3 items-center">
+                    <div class="w-full h-14 flex px-3 items-center text-white">
                         <input ref={self.chat_input.clone()} type="text" placeholder="Message" class="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700" name="message" required=true />
-                        <button onclick={submit} class="p-3 shadow-sm bg-blue-600 w-10 h-10 rounded-full flex justify-center items-center color-white">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="fill-white">
+                        <button onclick={submit} class="p-3 shadow-sm bg-blue-600 w-10 h-10 rounded-full flex justify-center items-center text-white">
+                            <svg fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="fill-white">
                                 <path d="M0 0h24v24H0z" fill="none"></path><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                             </svg>
                         </button>
